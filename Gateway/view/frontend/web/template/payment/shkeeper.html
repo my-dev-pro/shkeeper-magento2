@@ -26,6 +26,16 @@
                 <span data-bind="html: shkeeperCode()"></span>
             </div>
         </fieldset>
+        <div id="info" style="margin-bottom: 2vh;">
+            <label for="currencies" data-bind="i18n: 'Available Currencies'"></label>
+            <select id="currencies" name="currency"></select>
+        </div>
+
+        <div id="wallet-info" style="display: none;">
+            <p id="sh-address" data-bind="i18n: 'Address: '"></p>
+            <p id="sh-amount" data-bind="i18n: 'Amount to pay: '"></p>
+        </div>
+        <div id="shkeeper-qrcode" style="margin-top: 2vh;"></div>
         <div class="actions-toolbar">
             <div class="primary">
                 <button class="action primary checkout"

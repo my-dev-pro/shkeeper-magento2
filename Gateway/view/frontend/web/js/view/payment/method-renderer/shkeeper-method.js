@@ -12,6 +12,8 @@ define(
         'Magento_Checkout/js/action/select-payment-method',
         'Magento_Customer/js/model/customer',
         'Magento_Checkout/js/checkout-data',
+        'Magento_Checkout/js/model/quote',
+        'Magento_Checkout/js/model/totals',
         'Magento_Checkout/js/model/payment/additional-validators',
         'mage/url',
     ],
@@ -22,6 +24,8 @@ define(
         selectPaymentMethodAction,
         customer,
         checkoutData,
+        quote,
+        totals,
         additionalValidators,
         url) {
         'use strict';
@@ -40,7 +44,54 @@ define(
                 return this;
             },
             shkeeperCode: function() {
-                console.log('Hello MYDev');
+                $.ajax({
+                    url: '/shkeeper',
+                    type: 'POST',
+                    success: function (response) {
+                        console.log(response);
+                        let html = '';
+                        Object.entries(response.crypto_list).map(data => {
+                            let key = data[0];
+                            let value = data[1];
+                            html += `<option value="` + value.name + `">` + value.display_name + `</option>`;
+                        });
+                        $('#currencies').html(html);
+                    }
+                })
+
+                $('#currencies').on('change', function () {
+
+                    // reset previous values
+                    $('#shkeeper-qrcode').html('');
+                    $('#address-info').remove();
+                    $('#amount-info').remove('');
+
+                    $.ajax({
+                        url: '/shkeeper/invoice',
+                        type: 'POST',
+                        data: 'crypto=' + $('#currencies').val() + '&amount=' + totals.getSegment('grand_total').value + '&currency=' + quote.totals().quote_currency_code + '&quoteId=' + quote.getQuoteId(),
+                        success: function (response) {
+                            console.log(response)
+
+                            $('#sh-address').append('<span id="address-info">' + response.wallet + '</span>');
+                            $('#sh-amount').append('<span id="amount-info">' + response.amount + ' ' + response.display_name + '</span>');
+
+                            // Generate QRCode to scan
+                            new QRCode(document.getElementById("shkeeper-qrcode"), {
+                                text: response.wallet + '?amount=' + response.amount,
+                                width: 128,
+                                height: 128,
+                                colorDark: "#000000",
+                                colorLight: "#ffffff",
+                                correctLevel: QRCode.CorrectLevel.H
+                            });
+
+                            $('#wallet-info').css('display', 'block');
+                        }
+                    })
+
+                });
+
             },
             getInstructions: function() {
                 return window.checkoutConfig.payment.shkeeper.instructions;

@@ -13,7 +13,8 @@
     "require": {
         "magento/module-sales": "*",
         "magento/module-payment": "*",
-        "magento/module-checkout": "*"
+        "magento/module-checkout": "*",
+        "ext-curl": "*"
     },
     "autoload": {
         "psr-4": {
