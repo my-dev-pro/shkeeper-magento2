@@ -2,6 +2,7 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <head>
+        <css src="Shkeeper_Gateway::css/shkeeper.css"/>
         <script src_type="url" src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"/>
     </head>
     <body>

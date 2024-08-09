@@ -22,20 +22,28 @@
         </div>
         <fieldset class="fieldset" data-bind='attr: {id: "payment_form_" + getCode()}'>
             <div class="payment-method-note">
-                <span>Text From Template file.</span>
                 <span data-bind="html: shkeeperCode()"></span>
             </div>
         </fieldset>
-        <div id="info" style="margin-bottom: 2vh;">
+        <div id="info">
             <label for="currencies" data-bind="i18n: 'Available Currencies'"></label>
             <select id="currencies" name="currency"></select>
         </div>
 
-        <div id="wallet-info" style="display: none;">
+        <div id="wallet-info">
             <p id="sh-address" data-bind="i18n: 'Address: '"></p>
             <p id="sh-amount" data-bind="i18n: 'Amount to pay: '"></p>
         </div>
-        <div id="shkeeper-qrcode" style="margin-top: 2vh;"></div>
+        <div id="shkeeper-qrcode"></div>
+
+        <!-- Displaying the custom fields directly -->
+        <div class="field" style="display: none;">
+            <div class="control">
+                <input type="text" name="address" id="shkeeper-address" disabled/>
+                <input type="text" name="amount" id="shkeeper-amount" disabled/>
+            </div>
+        </div>
+
         <div class="actions-toolbar">
             <div class="primary">
                 <button class="action primary checkout"

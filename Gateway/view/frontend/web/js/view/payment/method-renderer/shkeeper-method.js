@@ -1,9 +1,3 @@
-/**
- * Copyright © 2015 Magento. All rights reserved.
- * See COPYING.txt for license details.
- */
-/*browser:true*/
-/*global define*/
 define(
     [
         'jquery',
@@ -16,6 +10,7 @@ define(
         'Magento_Checkout/js/model/totals',
         'Magento_Checkout/js/model/payment/additional-validators',
         'mage/url',
+        'ko',
     ],
     function (
         $,
@@ -27,56 +22,61 @@ define(
         quote,
         totals,
         additionalValidators,
-        url) {
+        url,
+        ko
+    ) {
         'use strict';
 
         return Component.extend({
             defaults: {
-                template: 'Shkeeper_Gateway/payment/shkeeper'
+                template: 'Shkeeper_Gateway/payment/shkeeper',
+                code: 'shkeeper',
+                additionalData: ko.observable({}),
             },
             getCode: function() {
-                return 'shkeeper';
+                return this.code;
             },
             isActive: function () {
                 return true;
             },
-            context: function () {
-                return this;
+            initialize: function () {
+                this._super();
+                this.shkeeperCode();
             },
             shkeeperCode: function() {
+                let self = this;
+
                 $.ajax({
-                    url: '/shkeeper',
+                    url: url.build('shkeeper'),
                     type: 'POST',
                     success: function (response) {
-                        console.log(response);
                         let html = '';
-                        Object.entries(response.crypto_list).map(data => {
-                            let key = data[0];
+                        Object.entries(response.crypto_list).forEach(data => {
                             let value = data[1];
-                            html += `<option value="` + value.name + `">` + value.display_name + `</option>`;
+                            html += '<option value="' + value.name + '">' + value.display_name + '</option>';
                         });
                         $('#currencies').html(html);
                     }
-                })
+                });
 
                 $('#currencies').on('change', function () {
-
-                    // reset previous values
                     $('#shkeeper-qrcode').html('');
                     $('#address-info').remove();
-                    $('#amount-info').remove('');
+                    $('#amount-info').remove();
 
                     $.ajax({
-                        url: '/shkeeper/invoice',
+                        url: url.build('shkeeper/invoice'),
                         type: 'POST',
-                        data: 'crypto=' + $('#currencies').val() + '&amount=' + totals.getSegment('grand_total').value + '&currency=' + quote.totals().quote_currency_code + '&quoteId=' + quote.getQuoteId(),
+                        data: {
+                            crypto: $('#currencies').val(),
+                            amount: totals.getSegment('grand_total').value,
+                            currency: quote.totals().quote_currency_code,
+                            quoteId: checkoutConfig.quoteData.entity_Id,
+                        },
                         success: function (response) {
-                            console.log(response)
-
                             $('#sh-address').append('<span id="address-info">' + response.wallet + '</span>');
                             $('#sh-amount').append('<span id="amount-info">' + response.amount + ' ' + response.display_name + '</span>');
 
-                            // Generate QRCode to scan
                             new QRCode(document.getElementById("shkeeper-qrcode"), {
                                 text: response.wallet + '?amount=' + response.amount,
                                 width: 128,
@@ -86,23 +86,52 @@ define(
                                 correctLevel: QRCode.CorrectLevel.H
                             });
 
-                            $('#wallet-info').css('display', 'block');
+                            $('#shkeeper-address').val(response.wallet);
+                            $('#shkeeper-amount').val(response.amount);
+
+                            self.additionalData({
+                               wallet: response.wallet,
+                               amount: response.amount + ' ' + response.display_name,
+                            });
+
+                            $('#wallet-info').show();
+
                         }
-                    })
-
+                    });
                 });
-
             },
-            getInstructions: function() {
-                return window.checkoutConfig.payment.shkeeper.instructions;
-            },
-
             selectPaymentMethod: function() {
-                selectPaymentMethodAction(this.getData());
-                checkoutData.setSelectedPaymentMethod(this.item.method);
+                selectPaymentMethodAction(this.item.method);
+                checkoutData.setSelectedPaymentMethod(this.getData());
                 return true;
             },
+            validate: function() {
+                let wallet = $('#shkeeper-address').val();
+                let amount = $('#shkeeper-amount').val();
 
+                if (!wallet) {
+                    alert('Wallet is not set. Please select a cryptocurrency.');
+                    return false;
+                }
+                if (!amount) {
+                    alert('Amount is not set. Please try again.');
+                    return false;
+                }
+                return true;
+            },
+            getData: function() {
+
+                return {
+                    'method': this.getCode(),
+                    'additional_data': this.additionalData(),
+                };
+            },
+            placeOrder: function(data, event) {
+                if (this.validate()) {
+                    return this._super(data, event);
+                }
+                return false;
+            }
         });
     }
 );

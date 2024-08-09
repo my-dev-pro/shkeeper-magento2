@@ -13,7 +13,7 @@ class ShkeeperHelper implements ConfigProviderInterface
 {
     protected const string XML_PATH_SHKEEPER_API_KEY = 'payment/shkeeper/shkeeper_api_key';
     protected const string XML_PATH_SHKEEPER_API_URL = 'payment/shkeeper/shkeeper_api_url';
-    protected const string XML_PATH_SHKEEPER_INSTRUCTIONS = 'payment/shkeeper/instruction';
+    protected const string XML_PATH_SHKEEPER_INSTRUCTIONS = 'payment/shkeeper/instructions';
     protected const string XML_PATH_SECURE_BASE_URL = 'web/secure/base_url';
     protected const string SHKEEPER_CODE = 'shkeeper';
 
@@ -139,7 +139,6 @@ class ShkeeperHelper implements ConfigProviderInterface
             throw $e;
         }
     }
-
 
     public function getAvailableCurrencies()
     {

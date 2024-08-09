@@ -7,6 +7,7 @@
                 <active>1</active>
                 <model>Shkeeper\Gateway\Model\Shkeeper</model>
                 <title>SHKeeper Gateway</title>
+                <instructions>Test from configurations</instructions>
                 <order_status>pendning_payment</order_status>
                 <allowspecific>0</allowspecific>
                 <group>offline</group>
