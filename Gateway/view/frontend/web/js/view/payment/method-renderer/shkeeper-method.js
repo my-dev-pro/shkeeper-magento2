@@ -71,7 +71,7 @@ define(
                             crypto: $('#currencies').val(),
                             amount: totals.getSegment('grand_total').value,
                             currency: quote.totals().quote_currency_code,
-                            quoteId: checkoutConfig.quoteData.entity_Id,
+                            quoteId: checkoutConfig.quoteData.entity_id,
                         },
                         success: function (response) {
                             $('#sh-address').append('<span id="address-info">' + response.wallet + '</span>');
