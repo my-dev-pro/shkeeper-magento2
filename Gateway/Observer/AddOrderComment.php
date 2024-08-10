@@ -54,7 +54,7 @@ class AddOrderComment implements ObserverInterface
         $comment = __('Customer Address: %1 and Order Amount: %2.', (string) $address, (string) $amount);
         $order->addStatusHistoryComment($comment)
             ->setIsVisibleOnFront(true) // Visible to customer
-            ->setIsCustomerNotified(false); // Do not send an email
+            ->setIsCustomerNotified(true); // send an email
 
         try {
             $this->orderRepository->save($order);

@@ -27,4 +27,15 @@ class Shkeeper extends AbstractMethod
         return $this;
     }
 
+    /**
+     * Get instructions text from config
+     *
+     * @return string
+     */
+    public function getInstructions()
+    {
+        $instructions = $this->getConfigData('instructions');
+        return $instructions !== null ? trim($instructions) : '';
+    }
+
 }
