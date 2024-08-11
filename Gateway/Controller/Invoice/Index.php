@@ -10,7 +10,6 @@ use Shkeeper\Gateway\Model\ShkeeperHelper;
 
 class Index implements HttpPostActionInterface
 {
-
     protected JsonFactory $_jsonFactory;
     protected Context $_context;
     protected RequestInterface $_request;
@@ -33,14 +32,21 @@ class Index implements HttpPostActionInterface
      */
     public function execute()
     {
+        // create invoice for selected currency
+        // collecting request params
+        $externalId = $this->_request->getParam("quoteId");
+        $currency = $this->_request->getParam("currency");
+        $amount = $this->_request->getParam("amount");
+        $cryptoCurrency = $this->_request->getParam("crypto");
 
-        $externalId = $this->_request->getParam('quoteId');
-        $currency = $this->_request->getParam('currency');
-        $amount = $this->_request->getParam('amount');
-        $cryptoCurrency = $this->_request->getParam('crypto');
-
-        $request = $this->_shkeeperHelper->getInvoiceAddress($externalId, $currency, $amount, $cryptoCurrency);
-        $data = json_decode($request, 'true', 512, JSON_INVALID_UTF8_IGNORE);
+        // send post request to generate invoice
+        $request = $this->_shkeeperHelper->getInvoiceAddress(
+            $externalId,
+            $currency,
+            $amount,
+            $cryptoCurrency
+        );
+        $data = json_decode($request, "true", 512, JSON_INVALID_UTF8_IGNORE);
 
         // render page
         $result = $this->_jsonFactory->create();
