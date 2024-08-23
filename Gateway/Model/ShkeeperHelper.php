@@ -11,11 +11,11 @@ use Psr\Log\LoggerInterface;
 
 class ShkeeperHelper implements ConfigProviderInterface
 {
-    protected const string XML_PATH_SHKEEPER_API_KEY = 'payment/shkeeper/shkeeper_api_key';
-    protected const string XML_PATH_SHKEEPER_API_URL = 'payment/shkeeper/shkeeper_api_url';
-    protected const string XML_PATH_SHKEEPER_INSTRUCTIONS = 'payment/shkeeper/instructions';
-    protected const string XML_PATH_SECURE_BASE_URL = 'web/secure/base_url';
-    protected const string SHKEEPER_CODE = 'shkeeper';
+    protected const XML_PATH_SHKEEPER_API_KEY = 'payment/shkeeper/shkeeper_api_key';
+    protected const XML_PATH_SHKEEPER_API_URL = 'payment/shkeeper/shkeeper_api_url';
+    protected const XML_PATH_SHKEEPER_INSTRUCTIONS = 'payment/shkeeper/instructions';
+    protected const XML_PATH_SECURE_BASE_URL = 'web/secure/base_url';
+    protected const SHKEEPER_CODE = 'shkeeper';
 
     /**
      * @var StoreManagerInterface $_storeManager
@@ -33,6 +33,8 @@ class ShkeeperHelper implements ConfigProviderInterface
 
     /**
      * @param ScopeConfigInterface $scopeConfig
+     * @param Curl $curl
+     * @param LoggerInterface $logger
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
@@ -89,8 +91,8 @@ class ShkeeperHelper implements ConfigProviderInterface
         try {
             // Headers
             $headers = [
-                'X-Shkeeper-Api-Key: ' . $this->getApiKey(),
-                'Content-Type: application/json',
+                'X-Shkeeper-Api-Key' => $this->getApiKey(),
+                'Content-Type' => 'application/json',
             ];
 
             // Parameters
@@ -115,30 +117,18 @@ class ShkeeperHelper implements ConfigProviderInterface
                 throw new \Exception('Failed to initialize cURL session.');
             }
 
-            // Set cURL options
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonParams);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            $this->_curl->setHeaders($headers);
+            $this->_curl->post($url, $jsonParams);
 
-            // Execute cURL request and get the response
-            $response = curl_exec($ch);
+            return $this->_curl->getBody();
 
-            // Check for cURL errors
-            if ($response === false) {
-                throw new \Exception('Curl error: ' . curl_error($ch));
-            }
-
-            // Close cURL session
-            curl_close($ch);
-
-            return $response;
         } catch (\Exception $e) {
             // Log the error
             $this->_logger->error('Error in getInvoiceAddress: ' . $e->getMessage());
             throw $e;
         }
     }
+
 
     public function getAvailableCurrencies()
     {
@@ -159,7 +149,7 @@ class ShkeeperHelper implements ConfigProviderInterface
             return $this->_curl->getBody();
         } catch (\Exception $e) {
             // Log the error
-            $this->_logger->error('Error in getInvoiceAddress: ' . $e->getMessage());
+            $this->_logger->error('Error in getAvailableCurrencies: ' . $e->getMessage());
             throw $e;
         }
     }
