@@ -101,7 +101,10 @@ define(
                 });
             },
             selectPaymentMethod: function() {
-                selectPaymentMethodAction(this.item.method);
+                selectPaymentMethodAction({
+                    'method': this.getCode(),
+                    'additional_data': this.additionalData(),
+                });
                 checkoutData.setSelectedPaymentMethod(this.getData());
                 return true;
             },
