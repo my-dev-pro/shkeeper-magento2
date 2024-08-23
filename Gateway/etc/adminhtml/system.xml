@@ -17,7 +17,7 @@
             <field id="shkeeper_api_url" translate="label" type="text" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="0">
                 <label>SHKeeper API URL</label>
 <!--                <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>-->
-                <comment>http://example.com:5000/</comment>
+                <comment>http://example.com/</comment>
                 <validate>required-entry validate-url</validate>
             </field>
             <field id="title" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
