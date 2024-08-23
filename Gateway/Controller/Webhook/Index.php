@@ -11,6 +11,7 @@ use Magento\Sales\Model\OrderFactory;
 use Magento\Quote\Model\QuoteFactory;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Psr\Log\LoggerInterface;
+use Shkeeper\Gateway\Model\ShkeeperHelper;
 
 class Index implements HttpPostActionInterface, CsrfAwareActionInterface
 {
@@ -20,6 +21,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
     protected $_orderRepository;
     protected $_orderFactory;
     protected $_quoteFactory;
+    protected $_shkeeperHelper;
 
     public function __construct(
         RequestInterface $request,
@@ -28,6 +30,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         OrderRepositoryInterface $orderRepository,
         OrderFactory $orderFactory,
         QuoteFactory $quoteFactory,
+        ShkeeperHelper $shkeeperHelper,
     ) {
         $this->_request = $request;
         $this->_jsonFactory = $jsonFactory;
@@ -35,6 +38,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         $this->_orderRepository = $orderRepository;
         $this->_orderFactory = $orderFactory;
         $this->_quoteFactory = $quoteFactory;
+        $this->_shkeeperHelper = $shkeeperHelper;
     }
 
     /**
@@ -58,6 +62,16 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
 
             $result->setData(['message' => 'Shkeeper API Key is required.']);
             $this->_logger->debug('Shkeeper API Key is required.');
+            $result->setHttpResponseCode(403);
+
+            return $result;
+        }
+
+        // validate APIKey is identical with store APIKey
+        if ($shkeeperAPIKey != $this->_shkeeperHelper->getApiKey()) {
+
+            $result->setData(['message' => 'Wrong Shkeeper API Key.']);
+            $this->_logger->debug('Wrong Shkeeper API Key.');
             $result->setHttpResponseCode(403);
 
             return $result;
