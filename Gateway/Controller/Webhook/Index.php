@@ -7,6 +7,8 @@ use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\App\RequestInterface;
+use Magento\Sales\Model\Order\Payment\Transaction;
+use Magento\Sales\Model\Order\Payment\Transaction\BuilderInterface;
 use Magento\Sales\Model\OrderFactory;
 use Magento\Quote\Model\QuoteFactory;
 use Magento\Sales\Api\OrderRepositoryInterface;
@@ -22,6 +24,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
     protected $_orderFactory;
     protected $_quoteFactory;
     protected $_shkeeperHelper;
+    protected $_transactionBuilder;
 
     public function __construct(
         RequestInterface $request,
@@ -31,6 +34,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         OrderFactory $orderFactory,
         QuoteFactory $quoteFactory,
         ShkeeperHelper $shkeeperHelper,
+        BuilderInterface $transactionBuilder,
     ) {
         $this->_request = $request;
         $this->_jsonFactory = $jsonFactory;
@@ -39,6 +43,7 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         $this->_orderFactory = $orderFactory;
         $this->_quoteFactory = $quoteFactory;
         $this->_shkeeperHelper = $shkeeperHelper;
+        $this->_transactionBuilder = $transactionBuilder;
     }
 
     /**
@@ -121,7 +126,11 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
 
         foreach ($payload['transactions'] as $transaction) {
             if ($transaction['trigger']) {
+                // Add payment comment
                 $comment .= 'TransactionId: ' . $transaction['txid'] . ', Amount: ' . $transaction['amount_crypto'] . ' ' . $transaction['crypto'] . PHP_EOL;
+
+                // Add payment transaction
+                $this->addPaymentTransaction($order, $transaction);
             }
         }
 
@@ -183,6 +192,28 @@ class Index implements HttpPostActionInterface, CsrfAwareActionInterface
         }
 
         return $amount;
+    }
+
+    private function addPaymentTransaction($order, $transactionData)
+    {
+        try {
+            $payment = $order->getPayment();
+
+            $transaction = $this->_transactionBuilder
+                ->setPayment($payment)
+                ->setOrder($order)
+                ->setTransactionId($transactionData['txid'])
+                ->setAdditionalInformation(
+                    [Transaction::RAW_DETAILS => $transactionData]
+                )
+                ->setFailSafe(true)
+                ->build(Transaction::TYPE_CAPTURE);
+
+            $payment->addTransactionCommentsToOrder($transaction, __('Transaction was added by Shkeeper webhook.'));
+            $transaction->save();
+        } catch (\Exception $e) {
+            $this->_logger->error('Error adding payment transaction: ' . $e->getMessage());
+        }
     }
 
 }
