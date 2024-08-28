@@ -7,6 +7,7 @@ use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Shkeeper\Gateway\Model\ShkeeperHelper;
+use Magento\Checkout\Model\Session as CheckoutSession;
 
 class Index implements HttpPostActionInterface
 {
@@ -14,17 +15,20 @@ class Index implements HttpPostActionInterface
     protected Context $_context;
     protected RequestInterface $_request;
     protected ShkeeperHelper $_shkeeperHelper;
+    protected CheckoutSession $_checkoutSession;
 
     public function __construct(
         Context $context,
         JsonFactory $jsonFactory,
         RequestInterface $request,
-        ShkeeperHelper $shkeeperHelper
+        ShkeeperHelper $shkeeperHelper,
+        CheckoutSession $checkoutSession
     ) {
         $this->_context = $context;
         $this->_jsonFactory = $jsonFactory;
         $this->_request = $request;
         $this->_shkeeperHelper = $shkeeperHelper;
+        $this->_checkoutSession = $checkoutSession;
     }
 
     /**
@@ -32,24 +36,33 @@ class Index implements HttpPostActionInterface
      */
     public function execute()
     {
-        // create invoice for selected currency
-        // collecting request params
-        $externalId = $this->_request->getParam("quoteId");
-        $currency = $this->_request->getParam("currency");
-        $amount = $this->_request->getParam("amount");
+        // Get quote ID from the checkout session
+        $quote = $this->_checkoutSession->getQuote();
+
+        // Collecting request params
+        $quoteId = $quote->getId();
+        $currency = $quote->getBaseCurrencyCode();
+        $amount = $quote->getBaseGrandTotal();
         $cryptoCurrency = $this->_request->getParam("crypto");
 
-        // send post request to generate invoice
+        // Send post request to generate invoice
         $request = $this->_shkeeperHelper->getInvoiceAddress(
-            $externalId,
+            $quoteId,
             $currency,
             $amount,
             $cryptoCurrency
         );
-        $data = json_decode($request, "true", 512, JSON_INVALID_UTF8_IGNORE);
+        $data = json_decode($request, true, 512, JSON_INVALID_UTF8_IGNORE);
 
-        // render page
+        // Render page
         $result = $this->_jsonFactory->create();
+//        $result->setData($data);
+        $data['cart'] = [
+            'quote_id' => $quoteId,
+            'currency' => $currency,
+            'amount' => $amount,
+            'crypto' => $cryptoCurrency,
+        ];
         $result->setData($data);
         $result->setHttpResponseCode(200);
 

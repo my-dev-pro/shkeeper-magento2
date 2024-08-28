@@ -69,11 +69,9 @@ define(
                         type: 'POST',
                         data: {
                             crypto: $('#currencies').val(),
-                            amount: totals.getSegment('grand_total').value,
-                            currency: quote.totals().quote_currency_code,
-                            quoteId: checkoutConfig.quoteData.entity_id,
                         },
                         success: function (response) {
+                            console.log(response.cart);
                             $('#sh-address').append('<span id="address-info">' + response.wallet + '</span>');
                             $('#sh-amount').append('<span id="amount-info">' + response.amount + ' ' + response.display_name + '</span>');
 
