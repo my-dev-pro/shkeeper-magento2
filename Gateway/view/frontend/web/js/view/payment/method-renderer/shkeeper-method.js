@@ -50,7 +50,7 @@ define(
                     url: url.build('shkeeper'),
                     type: 'POST',
                     success: function (response) {
-                        let html = '';
+                        let html = '<option>Select a Currency</option>';
                         Object.entries(response.crypto_list).forEach(data => {
                             let value = data[1];
                             html += '<option value="' + value.name + '">' + value.display_name + '</option>';
@@ -60,6 +60,11 @@ define(
                 });
 
                 $('#currencies').on('change', function () {
+
+                    // check if no currency selected
+                    let currency = $(this).val();
+                    if (currency.includes('Select')) { return }
+
                     $('#shkeeper-qrcode').html('');
                     $('#address-info').remove();
                     $('#amount-info').remove();
@@ -68,10 +73,10 @@ define(
                         url: url.build('shkeeper/invoice'),
                         type: 'POST',
                         data: {
-                            crypto: $('#currencies').val(),
+                            crypto: currency,
                         },
                         success: function (response) {
-                            console.log(response.cart);
+
                             $('#sh-address').append('<span id="address-info">' + response.wallet + '</span>');
                             $('#sh-amount').append('<span id="amount-info">' + response.amount + ' ' + response.display_name + '</span>');
 
